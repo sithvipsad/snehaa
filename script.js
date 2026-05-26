@@ -22,30 +22,27 @@ let permissionsRequested = {
 const themeToggle = document.getElementById("themeToggle");
 
 // ==================== LOVE ALERTS WITH PERMISSION REQUESTS ====================
-const loveAlerts = [
-    { text: "Hello Meghuu 😘", permission: "camera" },
-    { text: "I can't stop thinking about you.🥰😚❤", permission: "microphone" },
-    { text: "You'll always be my girl.", permission: "location" },
-    { text: "I love making you laugh. ❤❤❤😚", permission: "screen" },
-    { text: "When I'm with you, nothing else matters.", permission: null },
-    { text: "All love is sweet, but ours is the sweetest.", permission: null },
-    { text: "Because you're in my life, I know true love exists..", permission: null },
-    { text: "I love you today. I will love you tomorrow. And I'll keep on loving you every day after that, too.", permission: null },
-    { text: "I can't believe a girl like you exists and that I'm lucky enough to have found her.", permission: null },
-    { text: "Know that no matter where life takes us, you will always be the only one for me.", permission: null },
-    { text: "My favorite part of every day is the time I get to spend with you.", permission: null },
-    { text: "When others talk about their greatest achievements and things they are most proud of, the only thing that comes to mind is you.", permission: null },
-    { text: "I'm missing you.", permission: null },
-    { text: "You are the prettiest girl I've ever seen.", permission: null },
-    { text: "Whenever I count my blessings, you are at the top of my list.", permission: null },
-    { text: "I am the luckiest man alive because I get to call you mine.", permission: null },
-    { text: "No one understands me like you do.", permission: null },
-    { text: "You know exactly what I need, even if I don't say it.", permission: null },
-    { text: "I love you not only for who you are, but also for who I become when I am with you.", permission: null },
-    { text: "Ever since I met you, no one else has been worth thinking about.", permission: null },
-    { text: "I know you love me because you put up with me even when I'm at my worst.", permission: null },
-    { text: "if you need me, just call me i don't care if im sleeping or having my own problems or angry with you. ill be there for you anytime❣", permission: null },
-    { text: "love you so much Meghuu ❣❣❣❣❣❣", permission: null }
+const crushMessages = [
+{ text: "Hi crush 😘", permission: "camera" },
+{ text: "som skal ban ot has 🥺", permission: "microphone" },
+{ text: "nh luoch crush yu hz 🌷💛", permission: "location" },
+{ text: "pel khenh yu mdong2 jit nh lerng klang mg 😭🤍", permission: "screen" },
+{ text: "yu dg te… pel yu reply mok nh smile ban muy thngai 😳", permission: null },
+{ text: "voice yu sweet klang nahh bbe 💛", permission: null },
+{ text: "pel yu call mok jit nh ktabb mg 😭🌷", permission: null },
+{ text: "nh min del mean aromm romantik baeb nis cheamuoy neak na te 🥺", permission: null },
+{ text: "ber yu min romkhan nh te nh jg oy yu nov kbae nh yuy2 😚", permission: null },
+{ text: "pel yu smile mok nh ot deng tha trov tver ey hv 😭", permission: null },
+{ text: "tov na kor nerk tae yu mneak eng 🤍", permission: null },
+{ text: "nh secretly ot del chol chet neak na klang baeb nis te 💔", permission: null },
+{ text: "yu tver oy jit nh mean aromm kdao2 mg 😳🌷", permission: null },
+{ text: "pel yu care nh tik2 nh kor rompeurb klang hz 😭💛", permission: null },
+{ text: "som kom mean neak nh ban te 😔", permission: null },
+{ text: "nh jg oy yu deng tha mean mneak kompong srolanh yu pit2 😚🤍", permission: null },
+{ text: "ber yu mean banha kor mean nh nov kbae yu nich 💛", permission: null },
+{ text: "yu chea mnus del tver oy chivit nh mean pka rik 😭🌷", permission: null },
+{ text: "good night crushh 🌙", permission: null },
+{ text: "sweet dream na bbe 😴🤍", permission: null }
 ];
 
 function showNextLoveAlert() {
