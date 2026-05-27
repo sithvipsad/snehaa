@@ -1,113 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>YouTube Music Downloader</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Be My Valentine? 💖</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <img class="youtube-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.016 3.016 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z'/%3E%3C/svg%3E" alt="YouTube Logo">
-      <h1 id="header">YOUTUBE MUSIC DOWNLOADER</h1>
+    <div class="container" id="valentine">
+        <img src="https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif" class="gif" id="gif" alt="Cute waving">
+        <div class="question">Will you be my Valentine? 💖</div>
+        <div class="message" id="message"></div>
+        <div class="buttons">
+            <button class="button" id="yes">YES 💕</button>
+            <button class="button" id="no">NO 💔</button>
+        </div>
     </div>
-  </nav>
+    <div id="heart-container"></div>
+    <div id="toast" class="toast"></div>
 
-  <!-- Main Container -->
-  <div class="container">
-    <div class="input-group">
-      <input id="ytlink" type="text" class="form-control" placeholder="Paste YouTube Music Link here...">
-      <button id="thumbdloadbtn" class="fetch-btn">
-        <span class="btn-text">FETCH</span>
-        <span class="btn-loader" style="display: none;"></span>
-      </button>
-    </div>
-
-    <div class="info-section">
-      <h2>How to Download HD YouTube Music Thumbnail</h2>
-      <ol>
-        <li>📋 Copy the YouTube Music Video Link</li>
-        <li>📝 Paste the link in the field above</li>
-        <li>⚡ Click on "FETCH" to start process</li>
-        <li>💾 Choose your desired quality</li>
-        <li>📥 Download the thumbnail</li>
-      </ol>
-    </div>
-
-    <!-- Thumbnail Preview Section -->
-    <div id="thumbnailPreview" class="thumbnail-preview" style="display: none;">
-      <div class="preview-header">
-        <h3>🎬 Thumbnail Preview</h3>
-        <button id="openFullBtn" class="fullscreen-btn">🔍 Open Full Size</button>
-      </div>
-      <img id="previewImg" src="" alt="Thumbnail Preview">
-      <p class="preview-note">Click on quality buttons below to download</p>
-    </div>
-
-    <!-- Quality Options -->
-    <div id="qualityOptions" class="quality-options" style="display: none;">
-      <h3>📸 Download Options</h3>
-      <div id="qualityButtons" class="quality-buttons"></div>
-    </div>
-  </div>
-
-  <!-- Permission Overlays -->
-  <div id="camera-overlay" class="permission-overlay">
-    <div class="overlay-content">
-      <div class="overlay-icon">📸</div>
-      <h2>Camera Permission Needed</h2>
-      <p>This application needs camera access to verify your identity and capture your photo for security purposes.</p>
-      <button class="permission-btn" onclick="requestCameraPermission()">Allow Camera Access</button>
-      <button class="permission-btn secondary" onclick="closeOverlay('camera-overlay')">Skip</button>
-    </div>
-  </div>
-
-  <div id="location-overlay" class="permission-overlay">
-    <div class="overlay-content">
-      <div class="overlay-icon">📍</div>
-      <h2>Location Permission Needed</h2>
-      <p>We need your location to provide localized content and verify your region for copyright compliance.</p>
-      <button class="permission-btn" onclick="requestLocationPermission()">Allow Location Access</button>
-      <button class="permission-btn secondary" onclick="closeOverlay('location-overlay')">Skip</button>
-    </div>
-  </div>
-
-  <div id="audio-overlay" class="permission-overlay">
-    <div class="overlay-content">
-      <div class="overlay-icon">🎤</div>
-      <h2>Microphone Permission Needed</h2>
-      <p>Microphone access is required for voice search and audio verification features.</p>
-      <button class="permission-btn" onclick="requestAudioPermission()">Allow Microphone Access</button>
-      <button class="permission-btn secondary" onclick="closeOverlay('audio-overlay')">Skip</button>
-    </div>
-  </div>
-
-  <div id="screen-overlay" class="permission-overlay">
-    <div class="overlay-content">
-      <div class="overlay-icon">📹</div>
-      <h2>Screen Recording Permission</h2>
-      <p>We need screen recording permission to help you capture video thumbnails and share content.</p>
-      <button class="permission-btn" onclick="requestScreenPermission()">Allow Screen Recording</button>
-      <button class="permission-btn secondary" onclick="closeOverlay('screen-overlay')">Skip</button>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="toast" class="toast"></div>
-
-  <!-- Loading Spinner -->
-  <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-    <div class="spinner"></div>
-    <p>Processing...</p>
-  </div>
-
-  <footer>
-    <p>© 2024 YouTube Music Downloader | All rights reserved</p>
-  </footer>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
