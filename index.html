@@ -1,24 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Be My Valentine? 💖</title>
-    <link rel="stylesheet" href="style.css">
+<!DOCTYPE html><html lang="km"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>💖 សារស្នេហា 💖</title>
+  <link href="https://fonts.googleapis.com/css2?family=Khmer+OS+Battambang&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container" id="valentine">
-        <img src="https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif" class="gif" id="gif" alt="Cute waving">
-        <div class="question">Will you be my Valentine? 💖</div>
-        <div class="message" id="message"></div>
-        <div class="buttons">
-            <button class="button" id="yes">YES 💕</button>
-            <button class="button" id="no">NO 💔</button>
-        </div>
-    </div>
-    <div id="heart-container"></div>
-    <div id="toast" class="toast"></div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+  
+  <!-- Theme Toggle -->
+  <button id="themeToggle" aria-label="Toggle theme">🌙</button>
+  
+  <!-- Falling Hearts -->
+  <script>
+    for (let i = 0; i < 15; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'falling-heart';
+      heart.textContent = '❤️';
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.animationDelay = Math.random() * 5 + 's';
+      heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+      document.body.appendChild(heart);
+    }
+  </script><div class="falling-heart" style="left: 13.1007vw; animation-delay: 4.6164s; font-size: 33.4053px;">❤️</div><div class="falling-heart" style="left: 48.862vw; animation-delay: 0.0142409s; font-size: 26.7385px;">❤️</div><div class="falling-heart" style="left: 9.49855vw; animation-delay: 2.5718s; font-size: 34.4903px;">❤️</div><div class="falling-heart" style="left: 90.125vw; animation-delay: 1.20604s; font-size: 32.1915px;">❤️</div><div class="falling-heart" style="left: 65.5473vw; animation-delay: 4.74184s; font-size: 24.3373px;">❤️</div><div class="falling-heart" style="left: 43.4773vw; animation-delay: 0.27113s; font-size: 39.3106px;">❤️</div><div class="falling-heart" style="left: 51.5928vw; animation-delay: 3.59971s; font-size: 32.3479px;">❤️</div><div class="falling-heart" style="left: 38.2848vw; animation-delay: 3.32732s; font-size: 39.0823px;">❤️</div><div class="falling-heart" style="left: 66.928vw; animation-delay: 0.681001s; font-size: 22.4935px;">❤️</div><div class="falling-heart" style="left: 54.2926vw; animation-delay: 0.545822s; font-size: 25.5581px;">❤️</div><div class="falling-heart" style="left: 65.1417vw; animation-delay: 1.21037s; font-size: 21.0874px;">❤️</div><div class="falling-heart" style="left: 84.2024vw; animation-delay: 2.31137s; font-size: 27.8471px;">❤️</div><div class="falling-heart" style="left: 42.234vw; animation-delay: 4.09503s; font-size: 39.0138px;">❤️</div><div class="falling-heart" style="left: 22.1264vw; animation-delay: 2.76544s; font-size: 32.4559px;">❤️</div><div class="falling-heart" style="left: 71.5386vw; animation-delay: 0.307095s; font-size: 24.6946px;">❤️</div><div class="falling-heart" style="left: 17.9113vw; animation-delay: 3.76625s; font-size: 20.2255px;">❤️</div><div class="falling-heart" style="left: 59.8637vw; animation-delay: 1.7261s; font-size: 38.4118px;">❤️</div><div class="falling-heart" style="left: 73.7021vw; animation-delay: 2.69084s; font-size: 34.2928px;">❤️</div><div class="falling-heart" style="left: 87.6915vw; animation-delay: 3.89028s; font-size: 37.7916px;">❤️</div><div class="falling-heart" style="left: 21.4296vw; animation-delay: 0.8386s; font-size: 38.8653px;">❤️</div><div class="falling-heart" style="left: 80.1725vw; animation-delay: 0.262499s; font-size: 31.491px;">❤️</div><div class="falling-heart" style="left: 68.5439vw; animation-delay: 1.06348s; font-size: 39.055px;">❤️</div><div class="falling-heart" style="left: 93.0016vw; animation-delay: 2.93765s; font-size: 29.3541px;">❤️</div><div class="falling-heart" style="left: 79.4884vw; animation-delay: 1.99435s; font-size: 25.8173px;">❤️</div><div class="falling-heart" style="left: 67.3454vw; animation-delay: 3.04334s; font-size: 37.4641px;">❤️</div><div class="falling-heart" style="left: 61.6761vw; animation-delay: 0.0244172s; font-size: 36.8551px;">❤️</div><div class="falling-heart" style="left: 29.8683vw; animation-delay: 0.696432s; font-size: 23.4317px;">❤️</div><div class="falling-heart" style="left: 56.2672vw; animation-delay: 0.704834s; font-size: 20.3096px;">❤️</div><div class="falling-heart" style="left: 92.4947vw; animation-delay: 3.07556s; font-size: 29.4818px;">❤️</div><div class="falling-heart" style="left: 80.3368vw; animation-delay: 3.8705s; font-size: 38.6146px;">❤️</div>
+
+  <div class="love-box">
+    <h1>💖 សារពីបេះដូងខ្ញុំ 💖</h1>
+
+    <!-- Audio Player -->
+    <div class="audio-player">
+      <audio autoplay="" muted="" loop="" id="bg-audio">
+        <source src="" type="audio/mpeg">
+        ប្រូសេសរបស់អ្នកមិនគាំទ្រធាតុ audio នេះទេ។
+      </audio>
+    </div>
+
+    <div class="heart">❤️</div>
+
+    <p id="loveText">
+      សួស្ដីជាមនុស្សពិសេសបំផុតក្នុងបេះដូងខ្ញុំ,<br><br>
+      ខ្ញុំមានអារម្មណ៍ស្រលាញ់អ្នកជាពិសេសជាងគេ។ ការមានអ្នកនៅក្នុងជីវិតខ្ញុំ គឺជាអំណោយដ៏មានតម្លៃខ្លាំងណាស់។<br>
+      តើអ្នកអាចទទួលស្នេហារបស់ខ្ញុំបានទេ?
+    </p>
+
+    <div class="buttons">
+      <button class="yes-btn" onclick="collectAndSend('បាទ / ចាស')">បាទ / ចាស</button>
+      <button class="no-btn" onclick="collectAndSend('ទេ')">ទេ</button>
+    </div>
+
+    <textarea id="customReply" placeholder="សរសេរសារឆ្លើយតបរបស់អ្នក..."></textarea>
+    <button class="send-reply" onclick="sendCustomReply()">ផ្ញើសារឆ្លើយតប</button>
+    
+    <!-- Statistics -->
+    <div class="stats">
+      <div id="counter" class="stat-box">❤️ បាទ: 0 | 💔 ទេ: 0</div>
+      <div id="timer" class="stat-box">💞 ស្នេហារបស់យើង 0 ថ្ងៃ</div>
+    </div>
+    
+    <div class="response" id="response"></div>
+    <div class="signature">ជាមួយនឹងស្នេហាដ៏ជ្រាលជ្រៅ ♥️<br>– ពីបេះដូងម្នាក់</div>
+  </div>
+
+  <script src="script.js"></script>
+
+
+</body></html>

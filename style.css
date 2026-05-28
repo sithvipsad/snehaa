@@ -1,198 +1,262 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* Variables for theme */
+:root {
+  --bg: #ffffff;
+  --text: #333;
+  --card: #fff;
+  --accent: #e91e63;
+  --shadow: rgba(0, 0, 0, 0.2);
 }
+
+body.dark {
+  --bg: #121212;
+  --text: #eee;
+  --card: #1f1f1f;
+  --shadow: rgba(0, 0, 0, 0.4);
+}
+
+* { box-sizing: border-box; }
 
 body {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+  font-family: 'Khmer OS Battambang', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+  color: var(--text);
+  transition: background 0.5s, color 0.5s;
 }
 
-.container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 30px;
-    padding: 40px 30px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 90%;
-    margin: 20px;
-    animation: fadeIn 0.5s ease;
-    z-index: 10;
+body.dark {
+  background: linear-gradient(135deg, #121212 0%, #1a1a2e 100%);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+/* Theme Toggle */
+#themeToggle {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  border: none;
+  background: var(--card);
+  color: var(--text);
+  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--shadow);
+  z-index: 10;
 }
 
-.gif {
-    width: 150px;
-    height: 150px;
-    object-fit: contain;
-    margin-bottom: 20px;
-    border-radius: 20px;
-}
-
-.question {
-    font-size: 28px;
-    font-weight: bold;
-    color: #ff4757;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.message {
-    font-size: 18px;
-    color: #2f3542;
-    margin-bottom: 30px;
-    min-height: 60px;
-    font-weight: 500;
-}
-
-.buttons {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.button {
-    padding: 15px 40px;
-    font-size: 20px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-#yes {
-    background: linear-gradient(135deg, #2ed573 0%, #26c281 100%);
-    color: white;
-}
-
-#yes:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(46, 213, 115, 0.4);
-}
-
-#no {
-    background: linear-gradient(135deg, #ff4757 0%, #c0392b 100%);
-    color: white;
-}
-
-#no:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
-}
-
-.button:active {
-    transform: scale(0.95);
-}
-
-/* Heart animation container */
-#heart-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    overflow: hidden;
-}
-
-.floating-heart {
-    position: absolute;
-    font-size: 24px;
-    animation: floatUp 4s ease forwards;
-    opacity: 0;
-}
-
-@keyframes floatUp {
-    0% {
-        transform: translateY(100vh) scale(0.5);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-20vh) scale(1.5);
-        opacity: 0;
-    }
-}
-
-/* Confetti animation */
-.confetti {
-    position: fixed;
-    width: 10px;
-    height: 20px;
-    position: absolute;
-    animation: confettiFall 3s linear forwards;
-    z-index: 9998;
-}
-
-@keyframes confettiFall {
-    0% {
-        transform: translateY(-100px) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(100vh) rotate(360deg);
-        opacity: 0;
-    }
-}
-
-/* Toast notification */
+/* Toast Notification */
 .toast {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: linear-gradient(135deg, #2ed573 0%, #26c281 100%);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 10001;
-    opacity: 0;
-    transform: translateX(100px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--card);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 999;
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .toast.show {
-    opacity: 1;
-    transform: translateX(0);
+  opacity: 1;
 }
 
-.toast.error {
-    background: linear-gradient(135deg, #ff4757 0%, #c0392b 100%);
+/* Falling Hearts */
+.falling-heart {
+  position: absolute;
+  top: -50px;
+  font-size: 24px;
+  animation: fall 6s linear infinite;
+  user-select: none;
+  opacity: 0.8;
 }
 
+@keyframes fall {
+  0% { transform: translateY(-50px) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+/* Love Box */
+.love-box {
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px var(--shadow);
+  padding: 30px 25px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+  z-index: 1;
+  animation: fadeIn 1s ease;
+  transition: background 0.5s, box-shadow 0.5s;
+}
+
+h1 {
+  color: var(--accent);
+  font-size: 28px;
+  margin-top: 10px;
+}
+
+/* Audio Player */
+.audio-player {
+  width: 100%;
+  max-width: 400px;
+  margin: 10px auto 20px;
+  border-radius: 50px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+/* Heart Animation */
+.heart {
+  font-size: 50px;
+  margin: 15px 0;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Text */
+p {
+  font-size: 18px;
+  line-height: 1.7;
+  min-height: 140px;
+}
+
+/* Buttons */
+.buttons {
+  margin-top: 20px;
+}
+
+button {
+  padding: 12px 22px;
+  margin: 10px 8px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  font-family: 'Khmer OS Battambang', sans-serif;
+}
+
+.yes-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.no-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.yes-btn:hover {
+  background-color: #388e3c;
+}
+
+.no-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Textarea */
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  resize: vertical;
+  font-family: 'Khmer OS Battambang', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.send-reply {
+  background-color: #2196f3;
+  color: white;
+  margin-top: 12px;
+}
+
+.send-reply:hover {
+  background-color: #1976d2;
+}
+
+/* Response */
+.response {
+  margin-top: 25px;
+  font-size: 18px;
+  color: var(--accent);
+  min-height: 40px;
+}
+
+/* Signature */
+.signature {
+  margin-top: 30px;
+  font-style: italic;
+  color: #777;
+}
+
+/* Counter and Timer */
+.stats {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.stat-box {
+  padding: 10px 15px;
+  background: rgba(233, 30, 99, 0.1);
+  border-radius: 10px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Responsive */
 @media (max-width: 480px) {
-    .question {
-        font-size: 22px;
-    }
-    .button {
-        padding: 12px 30px;
-        font-size: 18px;
-    }
-    .gif {
-        width: 120px;
-        height: 120px;
-    }
+  .love-box {
+    padding: 20px 15px;
+  }
+  
+  h1 {
+    font-size: 24px;
+  }
+  
+  .heart {
+    font-size: 40px;
+  }
+  
+  p {
+    font-size: 16px;
+  }
+  
+  button {
+    padding: 10px 18px;
+    font-size: 15px;
+  }
 }
